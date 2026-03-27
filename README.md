@@ -1,4 +1,4 @@
-# 🎤 ハンズフリーのiPhone単語帳アプリ by かんだ
+# 🎤 ハンズフリーのiPhone単語帳アプリ by ジィジ
 
 広告なしの、完全無料　　　^o^         <br>
 
@@ -34,4 +34,8 @@ https://milgarden.github.io/web-flashcard-app-saa/?csv=https://raw.githubusercon
    - 「ファイルをえらぶ」から作成したCSVを選択し、「学習をはじめる」をタップ！
 
 ---
+
+”テクノロジーで笑顔創造！”に興味ある方は、我々のWebサイトにも飛んできてくださ～い ^0^/  <br>
+https://team-adventechlab.github.io/adventech_web/  <br>
+
 Powered by Team AdventechLAB
