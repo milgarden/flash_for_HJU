@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AWS SAA 攻略単語帳 Pro+ Voice</title>
+    <style>
+        /* iPhoneのセーフエリアを考慮したレイアウト */
+        body { 
+            font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background: #f0f2f5; 
+            overflow-y: auto; /* スクロールを許可 */
+            padding: 20px 0 40px 0; /* 下側に余白を確保 */
+            box-sizing: border-box;
+        }
+
+        #card { 
+            background: white; 
+            width: 92%; 
+            max-width: 500px; 
+            min-height: 280px; /* 高さを少し抑えてボタンを見やすく */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 30px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            text-align: center; 
+            padding: 25px; 
+            box-sizing: border-box; 
+            position: relative; 
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .label { color: #007aff; font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; }
+        .content { color: #1c1c1e; font-size: clamp(1.1rem, 4.5vw, 1.5rem); font-weight: bold; line-height: 1.5; width: 100%; word-break: break-all; white-space: pre-wrap; }
+        
+        #controls { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 12px; 
+            width: 100%; 
+            max-width: 500px;
+        }
+
+        .btn-group { display: none; gap: 15px; width: 90%; justify-content: center; }
+        
+        /* ボタンの共通スタイル */
+        button, label.file-label { 
+            padding: 16px 32px; 
+            font-size: 1.1rem; 
+            border: none; 
+            border-radius: 16px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.2s; 
+            display: inline-block; 
+            text-align: center;
+            min-width: 200px;
+        }
+
+        button:active { opacity: 0.7; transform: scale(0.98); }
+
+        #start-btn { background: #007aff; color: white; display: none; }
+        #ready-yes-btn { background: #34c759; color: white; display: none; margin-top: 10px; }
+        .file-label { background: #5856d6; color: white; }
+        
+        #csv-file { display: none; }
+        #wait-btn { background: #8e8e93; color: white; display: none; }
+        #show-answer-btn { background: #5856d6; color: white; display: none; }
+        
+        .correct-btn { background: #34c759; color: white; flex: 1; min-width: 120px; }
+        .wrong-btn { background: #ff3b30; color: white; flex: 1; min-width: 120px; }
+
+        #stats { margin-top: 15px; font-size: 0.85rem; color: #666; }
+        #voice-status { font-size: 0.8rem; color: #007aff; font-weight: bold; min-height: 1.2em; margin-top: 5px; }
+        #reset-btn { margin-top: 30px; background: none; color: #999; font-size: 0.8rem; text-decoration: underline; padding: 10px; min-width: auto; }
+        .skip-hint { position: absolute; bottom: 12px; font-size: 0.7rem; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <div id="card">
+        <div id="label" class="label">AWS SAA 攻略単語帳</div>
+        <div id="content" class="content">CSVファイルを読み込んでください</div>
+        <div id="voice-status"></div>
+        <div class="skip-hint">読み上げ中にタップでスキップ</div>
+    </div>
+
+    <div id="controls">
+        <label for="csv-file" class="file-label" id="file-selector-label">CSVファイルを選択</label>
+        <input type="file" id="csv-file" accept=".csv">
+        
+        <button id="start-btn">学習を開始する</button>
+
+        <button id="ready-yes-btn" onclick="confirmReady()">はい！準備OK</button>
+
+        <button id="wait-btn" onclick="pauseTimer()">ちょっと待って！</button>
+        <button id="show-answer-btn" onclick="resumeToAnswer()">回答を見る</button>
+        
+        <div id="btn-group" class="btn-group">
+            <button class="wrong-btn" onclick="handleResult(false)">❌ まだ</button>
+            <button class="correct-btn" onclick="handleResult(true)">⭕️ おぼえた</button>
+        </div>
+
+        <div id="stats"></div>
+        <button id="reset-btn" onclick="resetMemory()">学習記録をリセット</button>
+    </div>
+
+    <script>
+        const labelEl = document.getElementById('label');
+        const contentEl = document.getElementById('content');
+        const voiceStatusEl = document.getElementById('voice-status');
+        const startBtn = document.getElementById('start-btn');
+        const readyYesBtn = document.getElementById('ready-yes-btn');
+        const waitBtn = document.getElementById('wait-btn');
+        const showBtn = document.getElementById('show-answer-btn');
+        const btnGroup = document.getElementById('btn-group');
+        const statsEl = document.getElementById('stats');
+        const fileInput = document.getElementById('csv-file');
+        const fileLabel = document.getElementById('file-selector-label');
+        const synth = window.speechSynthesis;
+        
+        const praisePhrases = ["グレートです！", "その調子です！", "いいね！", "ナイスです！", "すごいよ！"];
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+        if (recognition) {
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+        }
+
+        let dataRows = [];
+        let currentIndex = 0;
+        let resolvePlay;
+        let timerId = null;
+        let isAnswering = false;
+        let isPaused = false;
+        let isWaitingForReady = false;
+
+        // 【新機能】URLパラメータからCSVを自動取得
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const csvUrl = urlParams.get('csv');
+            if (csvUrl) {
+                try {
+                    contentEl.innerText = "データを読み込み中...";
+                    const response = await fetch(csvUrl);
+                    if (!response.ok) throw new Error("取得失敗");
+                    const text = await response.text();
+                    processCSVText(text);
+                } catch (e) {
+                    contentEl.innerText = "自動読み込みに失敗しました。\nCSVファイルを選択してください。";
+                    console.error(e);
+                }
+            }
+        });
+
+        // 共通：テキストを解析してデータセットを構築
+        function processCSVText(text) {
+            const allRows = parseCSV(text);
+            const rawData = allRows.filter(r => r.length >= 2 && r[0].trim());
+            const learnedWords = JSON.parse(localStorage.getItem('learnedWords') || '[]');
+            dataRows = rawData.filter(row => !learnedWords.includes(row[1].trim()));
+            
+            if (dataRows.length > 0) {
+                contentEl.innerText = `読み込み完了！\n未習得: ${dataRows.length} 問`;
+                fileLabel.style.display = 'none';
+                startBtn.style.display = 'block';
+            } else {
+                contentEl.innerText = "学習するデータがありません";
+            }
+            updateStats();
+        }
+
+        // 手動読み込み
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => processCSVText(event.target.result);
+            reader.readAsText(file);
+        });
+
+        function parseCSV(text) {
+            const result = [];
+            let row = [];
+            let cell = "";
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i+1];
+                if (inQuotes) {
+                    if (char === '"' && nextChar === '"') { cell += '"'; i++; }
+                    else if (char === '"') { inQuotes = false; }
+                    else { cell += char; }
+                } else {
+                    if (char === '"') { inQuotes = true; }
+                    else if (char === ',') { row.push(cell); cell = ""; }
+                    else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+                        row.push(cell); result.push(row); row = []; cell = "";
+                        if (char === '\r') i++;
+                    } else { cell += char; }
+                }
+            }
+            if (row.length > 0 || cell !== "") { row.push(cell); result.push(row); }
+            return result;
+        }
+
+        startBtn.addEventListener('click', async () => {
+            startBtn.style.display = 'none';
+            synth.speak(new SpeechSynthesisUtterance("")); 
+            isWaitingForReady = true;
+            readyYesBtn.style.display = 'block';
+            labelEl.innerText = "READY?";
+            contentEl.innerText = "準備は良いですか？";
+            const utter = new SpeechSynthesisUtterance("準備は良いですか？");
+            utter.lang = 'ja-JP';
+            utter.onend = () => startListening();
+            synth.speak(utter);
+        });
+
+        function confirmReady() {
+            if (!isWaitingForReady) return;
+            isWaitingForReady = false;
+            readyYesBtn.style.display = 'none';
+            voiceStatusEl.innerText = "開始します！";
+            if (recognition) recognition.stop();
+            setTimeout(nextQuestion, 500);
+        }
+
+        async function nextQuestion() {
+            if (dataRows.length === 0) {
+                labelEl.innerText = "COMPLETE";
+                contentEl.innerText = "全て覚えました！";
+                btnGroup.style.display = 'none';
+                return;
+            }
+            if (currentIndex >= dataRows.length) currentIndex = 0;
+            const row = dataRows[currentIndex];
+            updateStats();
+            isAnswering = false;
+            isPaused = false;
+            isWaitingForReady = false;
+            btnGroup.style.display = 'none';
+            showBtn.style.display = 'none';
+            waitBtn.style.display = 'block';
+            await playCard("【 解説 】", row[0], 2000); 
+            waitBtn.style.display = 'none';
+            if (isPaused) return; 
+            showAnswer();
+        }
+
+        async function showAnswer() {
+            const row = dataRows[currentIndex];
+            isAnswering = true;
+            btnGroup.style.display = 'flex';
+            await playCard("【 回答 】", row[1], 1500); 
+            startListening();
+        }
+
+        function startListening() {
+            if (!recognition) return;
+            voiceStatusEl.innerText = "🎤 聞き取り中...";
+            try { recognition.start(); } catch (e) {}
+        }
+
+        if (recognition) {
+            recognition.onresult = async (event) => {
+                const speechResult = event.results[0][0].transcript;
+                voiceStatusEl.innerText = `認識: 「${speechResult}」`;
+                if (isWaitingForReady) {
+                    if (speechResult.includes("はい") || speechResult.includes("はーい") || speechResult.includes("いい")) {
+                        confirmReady();
+                    } else { setTimeout(startListening, 1000); }
+                    return;
+                }
+                if (speechResult.includes("まだ") || speechResult.includes("いいえ")) {
+                    handleResult(false);
+                } else if (speechResult.includes("おぼえた") || speechResult.includes("覚えた") || speechResult.includes("はい")) {
+                    handleResult(true);
+                } else { setTimeout(startListening, 1000); }
+            };
+            recognition.onerror = () => {
+                voiceStatusEl.innerText = "";
+                if (isAnswering || isWaitingForReady) setTimeout(startListening, 500);
+            };
+            recognition.onend = () => {
+                if ((isAnswering || isWaitingForReady) && voiceStatusEl.innerText.includes("聞き取り中")) {
+                    startListening();
+                }
+            };
+        }
+
+        async function handleResult(isCorrect) {
+            if (!isAnswering) return;
+            isAnswering = false;
+            synth.cancel(); 
+            if (recognition) recognition.stop();
+            voiceStatusEl.innerText = "";
+            btnGroup.style.display = 'none';
+            if (isCorrect) {
+                const praise = praisePhrases[Math.floor(Math.random() * praisePhrases.length)];
+                const utterPraise = new SpeechSynthesisUtterance(praise);
+                utterPraise.lang = 'ja-JP';
+                await new Promise(resolve => { utterPraise.onend = resolve; synth.speak(utterPraise); });
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const learnedWords = JSON.parse(localStorage.getItem('learnedWords') || '[]');
+                learnedWords.push(dataRows[currentIndex][1].trim());
+                localStorage.setItem('learnedWords', JSON.stringify(learnedWords));
+                dataRows.splice(currentIndex, 1); 
+            } else { currentIndex++; }
+            nextQuestion();
+        }
+
+        function pauseTimer() {
+            isPaused = true;
+            if (timerId) { clearTimeout(timerId); timerId = null; }
+            waitBtn.style.display = 'none';
+            showBtn.style.display = 'block';
+            contentEl.innerText += "\n\n(考え中...)";
+        }
+
+        function resumeToAnswer() {
+            showBtn.style.display = 'none';
+            isPaused = false;
+            showAnswer();
+        }
+
+        function playCard(label, text, delay) {
+            return new Promise((resolve) => {
+                resolvePlay = resolve;
+                labelEl.innerText = label;
+                contentEl.innerText = text;
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'ja-JP';
+                utter.onend = () => {
+                    timerId = setTimeout(() => { timerId = null; resolve(); }, delay);
+                };
+                utter.onerror = () => resolve();
+                synth.speak(utter);
+            });
+        }
+
+        function updateStats() { statsEl.innerText = `未習得: ${dataRows.length} 問`; }
+        function resetMemory() {
+            if (confirm("すべての学習記録をリセットしますか？")) {
+                localStorage.removeItem('learnedWords');
+                location.reload();
+            }
+        }
+
+        document.getElementById('card').addEventListener('click', () => {
+            if (synth.speaking) {
+                synth.cancel(); 
+                if (resolvePlay) resolvePlay(); 
+            }
+        });
+    </script>
+</body>
+</html>
