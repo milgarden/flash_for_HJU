@@ -21,9 +21,6 @@ https://milgarden.github.io/flash_for_HJU/?csv=https://raw.githubusercontent.com
 1. **CSVを用意する**
    - 1列目に「問題」、2列目に「答え」を書いたCSVファイルを作成する。
    - iPhoneの「ファイル」アプリに保存します。
-  
-   - (https://github.com/milgarden/flash_for_HJU/blob/main/kodomo_sample.csv)
-   - 
    - 作成に迷った際は、[サンプルファイル](https://github.com/milgarden/flash_for_HJU/blob/main/kodomo_sample.csv)を参考にしてください。
 2. **アプリを開く**
    - [アプリを起動する](https://milgarden.github.io/flash_for_HJU/)  <br>
