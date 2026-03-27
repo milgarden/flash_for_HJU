@@ -36,7 +36,7 @@ https://milgarden.github.io/flash_for_HJU/?csv=https://raw.githubusercontent.com
 
 ---
 
-”テクノロジーで笑顔創造！”に興味ある方は、我々のWebサイトにも飛んできてくださ～い ^0^/  <br>
+”テクノロジーで笑顔創造！”に興味ある方は、我々のWebサイト(完成前だけどwww)にも飛んできてくださ～い ^0^/  <br>
 https://team-adventechlab.github.io/adventech_web/  <br>
 
 Powered by Team AdventechLAB
