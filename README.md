@@ -6,11 +6,11 @@
 
 ## 📱 今すぐ体験する（MAZDA編）
 
-[👉 【ここをタップ】単語帳を試してみる（MAZDA編）](https://milgarden.github.io/web-flashcard-app-saa/?csv=https://raw.githubusercontent.com/milgarden/web-flashcard-app-saa/main/kodomo_sample.csv)
+[👉 【ここをタップ】単語帳を試してみる（MAZDA編）]([https://milgarden.github.io/web-flashcard-app-saa/?csv=https://raw.githubusercontent.com/milgarden/web-flashcard-app-saa](https://milgarden.github.io/flash_for_HJU/)/main/kodomo_sample.csv)
 <br>
 
 うまく動かない方は<br>
-https://milgarden.github.io/web-flashcard-app-saa/?csv=https://raw.githubusercontent.com/milgarden/web-flashcard-app-saa/main/kodomo_sample.csv  <br>
+https://milgarden.github.io/flash_for_HJU//main/kodomo_sample.csv  <br>
 をSafariにコピペして開いてください。<br>
 
 ---
@@ -20,12 +20,12 @@ https://milgarden.github.io/web-flashcard-app-saa/?csv=https://raw.githubusercon
 1. **CSVを用意する**
    - 1列目に「問題」、2列目に「答え」を書いたCSVファイルを作成する。
    - iPhoneの「ファイル」アプリに保存します。
-   - 作成に迷った際は、[サンプルファイル](https://github.com/milgarden/web-flashcard-app-saa/blob/main/kodomo_sample.csv)を参考にしてください。
+   - 作成に迷った際は、[サンプルファイル](https://milgarden.github.io/flash_for_HJU/main/kodomo_sample.csv)を参考にしてください。
 2. **アプリを開く**
-   - [アプリを起動する](https://milgarden.github.io/web-flashcard-app-saa/)  <br>
+   - [アプリを起動する](https://milgarden.github.io/flash_for_HJU/)  <br>
 　　　
    - うまく動かない方は　<br>
-      https://milgarden.github.io/web-flashcard-app-saa/  <br>
+      https://milgarden.github.io/flash_for_HJU/  <br>
      をSafariにコピペして開いてください。<br>
 
    - Safariの共有メニューから「ホーム画面に追加」を推奨します。
