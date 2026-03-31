@@ -280,7 +280,7 @@
                 if (isWaitingForReady) {
                     if (speechResult.includes("はい") || speechResult.includes("はーい") || speechResult.includes("いい")) {
                         confirmReady();
-                    } else { setTimeout(startListening, 1000); }
+                    } else { setTimeout(startListening, 500); }
                     return;
                 }
                 if (speechResult.includes("まだ") || speechResult.includes("いいえ")) {
