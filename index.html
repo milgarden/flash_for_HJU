@@ -263,7 +263,7 @@
             const row = dataRows[currentIndex];
             isAnswering = true;
             btnGroup.style.display = 'flex';
-            await playCard("【 回答 】", row[1], 1500); 
+            await playCard("【 回答 】", row[1], 000); 
             startListening();
         }
 
@@ -287,7 +287,7 @@
                     handleResult(false);
                 } else if (speechResult.includes("おぼえた") || speechResult.includes("覚えた") || speechResult.includes("はい")) {
                     handleResult(true);
-                } else { setTimeout(startListening, 1000); }
+                } else { setTimeout(startListening, 500); }
             };
             recognition.onerror = () => {
                 voiceStatusEl.innerText = "";
